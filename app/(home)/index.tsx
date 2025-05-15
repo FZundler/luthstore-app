@@ -62,8 +62,7 @@ export default function Home() {
             <ProdutoCard
               nome={produto.nome}
               imagem={produto.imagem}
-              tamanho="grande"
-            />
+              tamanho="grande" preco={""}            />
           </TouchableOpacity>
         ))}
       </View>
