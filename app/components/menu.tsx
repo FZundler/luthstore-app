@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { imagens } from "@/assets/images/images";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Menu() {
   const router = useRouter();
@@ -10,17 +11,29 @@ export default function Menu() {
 
   // Carrega o nome do usuário logado ao montar o componente
   useEffect(() => {
-    const loggedUser = localStorage.getItem("userName"); // Verificando se o nome do usuário está armazenadoo
-    if (loggedUser) {
-      setUserName(loggedUser);
-    }
+    const loadUser = async () => {
+      try {
+        const loggedUser = await AsyncStorage.getItem("userName");
+        if (loggedUser) {
+          setUserName(loggedUser);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar o usuário:", error);
+      }
+    };
+
+    loadUser();
   }, []);
 
   // Função de logout
-  const handleLogout = () => {
-    localStorage.removeItem("userName"); // Remove o nome do usuário do localStorage
-    setUserName(null); // Atualiza o estado do nome
-    router.push("/login"); // Redireciona para a tela de login
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("userName");
+      setUserName(null);
+      router.push("/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
   };
 
   return (
@@ -32,7 +45,7 @@ export default function Menu() {
 
       <View style={styles.links}>
         <TouchableOpacity onPress={() => router.push("/")}>
-          <Text style={styles.link}>Inicio</Text>
+          <Text style={styles.link}>Início</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/productListScreen")}>

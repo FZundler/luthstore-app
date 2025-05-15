@@ -11,17 +11,17 @@ import {
   ImageBackground,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { imagens } from "@/assets/images/images"; // Importe suas imagens aqui
+import { imagens } from "@/assets/images/images";
 
 export default function CadastroInstrumento() {
   const router = useRouter();
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("");
   const [preco, setPreco] = useState("");
-  const [foto, setFoto] = useState<any>(null); // Para armazenar a foto selecionada
+  const [foto, setFoto] = useState<string | null>(null);
 
-  // Função para selecionar imagem
   const selecionarImagem = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permission.granted) {
@@ -38,27 +38,45 @@ export default function CadastroInstrumento() {
     }
   };
 
-  // Função para simular o envio de dados (por exemplo, para uma API)
-  const handleCadastro = () => {
+  const handleCadastro = async () => {
     if (!nome || !tipo || !preco || !foto) {
       Alert.alert("Erro", "Todos os campos são obrigatórios.");
       return;
     }
-    // Aqui você pode enviar os dados para o backend
-    Alert.alert("Sucesso", "Instrumento cadastrado com sucesso!");
-    router.replace("/"); // Redireciona para a home após o cadastro
+
+    try {
+      const novoInstrumento = {
+        id: Date.now(), // ID simples
+        nome,
+        tipo,
+        preco,
+        foto,
+      };
+
+      const instrumentosSalvos = await AsyncStorage.getItem("instrumentos");
+      const instrumentos = instrumentosSalvos ? JSON.parse(instrumentosSalvos) : [];
+
+      instrumentos.push(novoInstrumento);
+      await AsyncStorage.setItem("instrumentos", JSON.stringify(instrumentos));
+
+      Alert.alert("Sucesso", "Instrumento cadastrado com sucesso!");
+      router.replace("/"); // Redireciona para a home
+    } catch (error) {
+      console.error("Erro ao salvar instrumento:", error);
+      Alert.alert("Erro", "Não foi possível cadastrar o instrumento.");
+    }
   };
 
   const handleGoHome = () => {
-    router.replace("/"); // Redireciona para a página inicial
+    router.replace("/");
   };
 
   return (
     <ImageBackground
-      source={imagens.background} // Substitua com o caminho da sua imagem de fundo
+      source={imagens.background}
       style={styles.background}
       resizeMode="cover"
-      blurRadius={5} // Defina o valor para o nível de desfoque
+      blurRadius={5}
     >
       <View style={styles.container}>
         <Text style={styles.titulo}>Cadastrar Instrumento</Text>
@@ -88,7 +106,6 @@ export default function CadastroInstrumento() {
           onChangeText={setPreco}
         />
 
-        {/* Exibição da imagem selecionada */}
         <TouchableOpacity style={styles.botaoImagem} onPress={selecionarImagem}>
           {foto ? (
             <Image source={{ uri: foto }} style={styles.imagemPreview} />
@@ -101,7 +118,6 @@ export default function CadastroInstrumento() {
           <Text style={styles.botaoTexto}>Cadastrar</Text>
         </TouchableOpacity>
 
-        {/* Apenas a palavra "Página Inicial" que redireciona */}
         <TouchableOpacity onPress={handleGoHome}>
           <Text style={styles.paginaInicial}>Página Inicial</Text>
         </TouchableOpacity>
