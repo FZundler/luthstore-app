@@ -30,7 +30,7 @@ export default function Menu() {
     try {
       await AsyncStorage.removeItem("userName");
       setUserName(null);
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
     }
@@ -72,7 +72,7 @@ export default function Menu() {
         )}
 
         {/* Exibe "Sair" se o usuário estiver logado ou "Entrar" se não */}
-        <TouchableOpacity onPress={userName ? handleLogout : () => router.push("/login")}>
+        <TouchableOpacity onPress={userName ? handleLogout : () => router.push("/")}>
           <Text style={styles.link}>{userName ? "Sair" : "Entrar"}</Text>
         </TouchableOpacity>
       </View>
