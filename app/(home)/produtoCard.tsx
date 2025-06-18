@@ -6,12 +6,17 @@ const { width } = Dimensions.get("window");
 type ProdutoCardProps = {
   nome: string;
   imagem: any;
-  preco: string;
+  preco: number | string;
   tamanho?: "grande" | "pequeno";
 };
 
 export default function ProdutoCard({ nome, imagem, preco, tamanho = "pequeno" }: ProdutoCardProps) {
   const grande = tamanho === "grande";
+
+  // Formata o preço para R$ x.xxx,xx
+  const precoFormatado = typeof preco === "number"
+    ? preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    : preco;
 
   return (
     <View
@@ -23,7 +28,7 @@ export default function ProdutoCard({ nome, imagem, preco, tamanho = "pequeno" }
     >
       <Image source={imagem} style={[styles.imagemProduto, grande ? styles.imgGrande : styles.imgPequena]} />
       <Text style={styles.nomeProduto}>{nome}</Text>
-      <Text style={styles.preco}>{preco}</Text>
+      <Text style={styles.preco}>{precoFormatado}</Text>
     </View>
   );
 }
@@ -45,24 +50,24 @@ const styles = StyleSheet.create({
     ...estiloBaseCard,
   } as ViewStyle,
   cardGrande: {
-    width: width > 768 ? 320 : 280, // Aumentado
-    marginHorizontal: 12,            // Espaço entre os cards
-    marginBottom: 24,                // Espaço vertical
+    width: width > 768 ? 320 : 280,
+    marginHorizontal: 12,
+    marginBottom: 24,
   },
   cardGrandeMargin: {
-    marginTop: 120, // Espaço extra da barra de menu
+    marginTop: 120,
   },
   cardPequeno: {
     width: width > 768 ? width / 4 - 30 : 160,
-    marginHorizontal: 8,            // Espaço entre os cards
-    marginBottom: 16,               // Espaço vertical
+    marginHorizontal: 8,
+    marginBottom: 16,
   },
   imagemProduto: {
     borderRadius: 8,
   },
   imgGrande: {
     width: "100%",
-    height: 200, // Aumentado
+    height: 200,
   },
   imgPequena: {
     width: "100%",

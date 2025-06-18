@@ -1,5 +1,4 @@
-// pages/productListScreen.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -10,39 +9,46 @@ import {
   Text,
 } from "react-native";
 import ProdutoCard from "./produtoCard";
-import Menu from "../components/menu"; // Novo componente de menu
+import Menu from "../components/menu";
 import { imagens } from "@/assets/images/images";
-import { useRouter } from "expo-router"; // Importação do hook de navegação
+import { useRouter } from "expo-router";
+import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
-const products = [
-  { id: 1, nome: "Guitar", preco: "R$ 1.200", imagem: imagens.guitarra },
-  { id: 2, nome: "Drums", preco: "R$ 1.500", imagem: imagens.teclado },
-  { id: 3, nome: "Piano", preco: "R$ 3.000", imagem: imagens.violao },
-  { id: 4, nome: "Violin", preco: "R$ 900", imagem: imagens.guitarra },
-  { id: 5, nome: "Trumpet", preco: "R$ 800", imagem: imagens.teclado },
-  { id: 6, nome: "Saxophone", preco: "R$ 1.100", imagem: imagens.violao },
-  { id: 7, nome: "Flute", preco: "R$ 600", imagem: imagens.guitarra },
-  { id: 8, nome: "Timpani", preco: "R$ 2.000", imagem: imagens.teclado },
-];
-
 export default function ProductListScreen() {
-  const router = useRouter(); // Hook para navegação
+  const router = useRouter();
+  const [products, setProducts] = useState<any[]>([]); // Tipar corretamente se possível
+  const [loading, setLoading] = useState(true);
 
-  const renderItem = ({ item }: { item: typeof products[0] }) => (
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/products");
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar produtos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.cardContainer}>
       <ProdutoCard
         nome={item.nome}
         preco={item.preco}
-        imagem={item.imagem}
+        imagem={item.imagem || imagens.guitarra} // fallback caso imagem venha nula
         tamanho="pequeno"
       />
     </View>
   );
 
   const handleGoHome = () => {
-    router.push("/"); // Redireciona para a página inicial
+    router.push("/");
   };
 
   return (
@@ -54,16 +60,19 @@ export default function ProductListScreen() {
     >
       <Menu />
 
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
-        numColumns={4}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <Text style={{ color: "#fff", textAlign: "center", marginTop: 20 }}>Carregando...</Text>
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          numColumns={4}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
-      {/* Palavra "Página Inicial" fora do card */}
       <TouchableOpacity style={styles.paginaInicialContainer} onPress={handleGoHome}>
         <Text style={styles.paginaInicial}>Página Inicial</Text>
       </TouchableOpacity>
@@ -84,7 +93,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cardContainer: {
-    width: width / 4 - 20, // 4 cards por linha, com margem
+    width: width / 4 - 20,
     margin: 5,
     alignItems: "center",
   },
