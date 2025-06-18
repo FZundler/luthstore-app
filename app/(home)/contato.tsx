@@ -21,7 +21,7 @@ export default function Contato() {
   const handleSubmit = () => {
     if (nome && email && mensagem) {
       Alert.alert("Sucesso", "Sua mensagem foi enviada com sucesso!");
-      router.replace("/"); // Exemplo de redirecionamento para a home
+      router.replace(`https://wa.me/5553981568093?text=Nome: ${nome}, Email: ${email}, Mensagem: ${mensagem}`); // Exemplo de redirecionamento para a home
     } else {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
     }
