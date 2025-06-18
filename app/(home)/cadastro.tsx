@@ -6,37 +6,20 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
-  Alert,
   ImageBackground,
+  Alert,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import axios from "axios";
 import { imagens } from "@/assets/images/images";
+import { randomInt } from "crypto";
 
 export default function CadastroInstrumento() {
   const router = useRouter();
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("");
   const [preco, setPreco] = useState("");
-  const [foto, setFoto] = useState<string | null>(null);
-
-  const selecionarImagem = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permission.granted) {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
-      });
-
-      if (!result.canceled) {
-        setFoto(result.assets[0].uri);
-      }
-    } else {
-      Alert.alert("Permissão necessária", "Precisamos de permissão para acessar a galeria.");
-    }
-  };
+  const [foto, setFoto] = useState("");
 
   const handleCadastro = async () => {
     if (!nome || !tipo || !preco || !foto) {
@@ -45,24 +28,30 @@ export default function CadastroInstrumento() {
     }
 
     try {
-      const novoInstrumento = {
-        id: Date.now(), // ID simples
+      const novoProduto = {
+        id: randomInt,
         nome,
         tipo,
-        preco,
-        foto,
+        preco: Number(preco),
+        imagem: foto,
       };
 
-      const instrumentosSalvos = await AsyncStorage.getItem("instrumentos");
-      const instrumentos = instrumentosSalvos ? JSON.parse(instrumentosSalvos) : [];
+      const response = await axios.post("http://localhost:3000/products", novoProduto, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      instrumentos.push(novoInstrumento);
-      await AsyncStorage.setItem("instrumentos", JSON.stringify(instrumentos));
+      console.log(response)
 
-      Alert.alert("Sucesso", "Instrumento cadastrado com sucesso!");
-      router.replace("/"); // Redireciona para a home
+      if (response.status === 201 || response.status === 200) {
+        Alert.alert("Sucesso", "Instrumento cadastrado com sucesso!");
+        router.replace("/");
+      } else {
+        Alert.alert("Erro", "Erro ao cadastrar. Verifique o servidor.");
+      }
     } catch (error) {
-      console.error("Erro ao salvar instrumento:", error);
+      console.error("Erro ao cadastrar:", error);
       Alert.alert("Erro", "Não foi possível cadastrar o instrumento.");
     }
   };
@@ -106,13 +95,13 @@ export default function CadastroInstrumento() {
           onChangeText={setPreco}
         />
 
-        <TouchableOpacity style={styles.botaoImagem} onPress={selecionarImagem}>
-          {foto ? (
-            <Image source={{ uri: foto }} style={styles.imagemPreview} />
-          ) : (
-            <Text style={styles.botaoTexto}>Selecionar Foto</Text>
-          )}
-        </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Link da Foto"
+          placeholderTextColor="#999"
+          value={foto}
+          onChangeText={setFoto}
+        />
 
         <TouchableOpacity style={styles.botao} onPress={handleCadastro}>
           <Text style={styles.botaoTexto}>Cadastrar</Text>
@@ -168,20 +157,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "500",
-  },
-  botaoImagem: {
-    backgroundColor: "#333",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  imagemPreview: {
-    width: 100,
-    height: 100,
-    resizeMode: "cover",
-    borderRadius: 8,
   },
   paginaInicial: {
     color: "#fff",

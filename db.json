@@ -1,40 +1,40 @@
 {
   "products": [
     {
-      "id": 1,
+      "id": "1",
       "nome": "Guitarra",
       "preco": 2500,
       "imagem": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Mi_Guitarra.jpg"
     },
     {
-      "id": 2,
+      "id": "2",
       "nome": "Contra-baixo",
       "preco": 2600,
       "imagem": "https://www.royalmusic.com.br/wp-content/uploads/2023/07/10360643-01-1000x564.jpg"
     },
     {
-      "id": 3,
+      "id": "3",
       "nome": "Piano",
       "preco": 7500,
       "imagem": "https://serenata.vteximg.com.br/arquivos/ids/3117145-1000-1000/PIANO-YAMAHA-P145B_IMG2.jpg?v=638816365147770000"
     },
     {
-      "id": 4,
+      "id": "4",
       "nome": "Violão",
       "preco": 2000,
       "imagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgsR202fLDreD0J2GVV5QJOoAmE8gLKaeeKw&s"
     },
     {
-      "id": 5,
+      "id": "5",
       "nome": "Violino",
       "preco": 799,
       "imagem": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdG6FraXjrYKIVlGI2vXSOK9VRMbYmfmSOoDVuMsx8VcApjqNEeApX2y3vHajSdJwbK0g&usqp=CAU"
     },
     {
-      "id": 6,
+      "id": "6",
       "nome": "Ukulele",
       "preco": 500,
       "imagem": "https://www.royalmusic.com.br/wp-content/uploads/2019/09/bali-tobacco-acustic-01-1000x564.jpg"
     }
-  ]
+    ]
 }
