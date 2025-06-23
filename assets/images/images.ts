@@ -1,5 +1,5 @@
 export const imagens = {
-    background: require("./background.png"),
+    background: require("./background.jpg"),
     logo: require("./logo.png"),
     guitarra: require("./fundo2.jpg"),
     teclado: require("./acess.png"),
