@@ -10,10 +10,11 @@ import {
   Platform,
   ImageBackground,
   Linking,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 
-const backgroundImage = require("../../assets/images/whats.png");
+const backgroundImage = require("../../assets/images/contato.jpg");
 
 export default function Contato() {
   const router = useRouter();
@@ -53,50 +54,71 @@ export default function Contato() {
       source={backgroundImage}
       style={styles.background}
       resizeMode="cover"
-      blurRadius={2}
     >
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.formWrapper}>
-          <Text style={styles.titulo}>LuthStore - Contato 🎸</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Contato - LuthStore 🎶</Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Nome"
-            placeholderTextColor="#999"
-            value={nome}
-            onChangeText={setNome}
-          />
+          <Text style={styles.introText}>
+            Tem alguma dúvida ou quer fazer um orçamento? Entre em contato conosco via WhatsApp, e-mail ou telefone. Estamos prontos para ajudar você!
+          </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#999"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={styles.infoBox}>
+            <Text style={styles.infoItem}>📞 Telefone: (53) 98156-8093</Text>
+            <Text style={styles.infoItem}>✉️ Email: contato@luthstore.com</Text>
+            <Text style={styles.infoItem}>📍 Endereço: Rua das Cordas, 123 - Pelotas, RS</Text>
+          </View>
 
-          <TextInput
-            style={[styles.input, { height: 100 }]}
-            placeholder="Mensagem"
-            placeholderTextColor="#999"
-            value={mensagem}
-            onChangeText={setMensagem}
-            multiline
-          />
+          <View style={styles.formWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Nome"
+              placeholderTextColor="#ccc"
+              value={nome}
+              onChangeText={setNome}
+              keyboardAppearance="dark"
+            />
 
-          <TouchableOpacity style={styles.botao} onPress={handleSubmit}>
-            <Text style={styles.botaoTexto}>Enviar via WhatsApp</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#ccc"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              keyboardAppearance="dark"
+            />
+
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Mensagem"
+              placeholderTextColor="#ccc"
+              value={mensagem}
+              onChangeText={setMensagem}
+              multiline
+              textAlignVertical="top"
+              keyboardAppearance="dark"
+            />
+
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Enviar via WhatsApp</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity onPress={handleGoHome} style={{ marginTop: 24 }}>
+            <Text style={styles.goHomeText}>Voltar para página inicial</Text>
           </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity onPress={handleGoHome}>
-          <Text style={styles.paginaInicial}>Página Inicial</Text>
-        </TouchableOpacity>
+          <View style={styles.separator} />
+
+          <Text style={styles.footerText}>
+            © 2025 LuthStore. Todos os direitos reservados.
+          </Text>
+        </ScrollView>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -105,60 +127,110 @@ export default function Contato() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: "100%",
-    height: "100%",
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 30,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: 12,
+    textAlign: "center",
+    letterSpacing: 0.8,
+  },
+  introText: {
+    color: "#ddd",
+    fontSize: 16,
+    lineHeight: 22,
+    textAlign: "center",
+    marginBottom: 22,
+    maxWidth: 360,
+  },
+  infoBox: {
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 28,
+    width: "90%",
+    maxWidth: 380,
+  },
+  infoItem: {
+    color: "#eee",
+    fontSize: 15,
+    marginBottom: 8,
   },
   formWrapper: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "rgba(26, 26, 26, 0.85)",
-    padding: 24,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     borderRadius: 12,
+    paddingVertical: 25,
+    paddingHorizontal: 20,
+    maxWidth: 380,
+    width: "90%",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  titulo: {
-    fontSize: 26,
-    color: "#fff",
-    marginBottom: 24,
-    textAlign: "center",
-    fontWeight: "600",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 9,
   },
   input: {
-    height: 48,
-    backgroundColor: "#222",
+    backgroundColor: "rgba(255,255,255,0.12)",
     color: "#fff",
+    height: 42,
     borderRadius: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 14,
     marginBottom: 16,
-    fontSize: 16,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
   },
-  botao: {
+  textArea: {
+    height: 90,
+  },
+  button: {
     backgroundColor: "#25D366",
-    paddingVertical: 14,
     borderRadius: 8,
+    paddingVertical: 14,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 4,
+    shadowColor: "#128C7E",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.7,
+    shadowRadius: 5,
+    elevation: 7,
   },
-  botaoTexto: {
+  buttonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.7,
   },
-  paginaInicial: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "500",
+  goHomeText: {
+    color: "#ddd",
+    fontSize: 15,
+    fontWeight: "600",
     textAlign: "center",
-    marginTop: 30,
+    textDecorationLine: "underline",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    marginVertical: 30,
+    width: "90%",
+    maxWidth: 380,
+    alignSelf: "center",
+    borderRadius: 1,
+  },
+  footerText: {
+    color: "#aaa",
+    fontSize: 13,
+    textAlign: "center",
   },
 });

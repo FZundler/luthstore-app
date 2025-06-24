@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
+  SafeAreaView,
   StyleSheet,
   ImageBackground,
   Dimensions,
@@ -11,12 +12,14 @@ import {
   FlatList,
   Alert,
   Image,
+  StatusBar,
+  ScrollView,
+  TextInput,
 } from "react-native";
 
-import { MaterialIcons } from "@expo/vector-icons";
-
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { imagens } from "@/assets/images/images";
-import ProdutoCard from "./produtoCard"; // seu componente original
+import ProdutoCard from "./produtoCard";
 import Menu from "../components/menu";
 
 const { width } = Dimensions.get("window");
@@ -53,8 +56,11 @@ export default function Home() {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
   const [slideAnim] = useState(new Animated.Value(-width));
   const [carrinho, setCarrinho] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [filteredCategorias, setFilteredCategorias] = useState(categorias);
+  const [filtroAtivo, setFiltroAtivo] = useState(null);
 
-  // Abre o modal com categoria selecionada
+  // Abrir menu lateral com produtos da categoria
   const openMenu = (categoriaNome) => {
     const categoria = categorias.find((c) => c.nome === categoriaNome);
     setCategoriaSelecionada(categoria);
@@ -66,7 +72,7 @@ export default function Home() {
     }).start();
   };
 
-  // Fecha o modal
+  // Fechar menu lateral
   const closeMenu = () => {
     Animated.timing(slideAnim, {
       toValue: -width,
@@ -79,21 +85,28 @@ export default function Home() {
     });
   };
 
-  // Adiciona produto ao carrinho (evita duplicatas)
+  // Adicionar produto ao carrinho
   const addAoCarrinho = (produto) => {
     if (carrinho.some((item) => item.id === produto.id)) {
       Alert.alert("Aviso", "Produto já está no carrinho.");
       return;
     }
     setCarrinho([...carrinho, produto]);
+    Alert.alert("Sucesso", `${produto.nome} adicionado ao carrinho!`);
   };
 
-  // Remove produto do carrinho
+  // Remover produto do carrinho
   const removerDoCarrinho = (produtoId) => {
     setCarrinho(carrinho.filter((item) => item.id !== produtoId));
+    Alert.alert("Produto removido do carrinho");
   };
 
-  // Função para botão comprar
+  // Limpar carrinho
+  const limparCarrinho = () => {
+    setCarrinho([]);
+  };
+
+  // Confirmar compra
   const comprar = () => {
     if (carrinho.length === 0) {
       Alert.alert("Carrinho vazio", "Adicione algum produto antes de comprar.");
@@ -104,12 +117,7 @@ export default function Home() {
     closeMenu();
   };
 
-  // Função para botão detalhes (aqui apenas alert)
-  const detalhes = () => {
-    Alert.alert("Detalhes", "Selecione um produto para ver detalhes.");
-  };
-
-  // Renderiza cards dentro do modal
+  // Renderizar card do produto dentro do menu lateral
   const renderProdutoCard = ({ item }) => (
     <View style={styles.cardModal}>
       <Image source={item.imagem} style={styles.cardModalImage} resizeMode="contain" />
@@ -117,15 +125,17 @@ export default function Home() {
 
       {carrinho.some((p) => p.id === item.id) ? (
         <TouchableOpacity
-          style={[styles.botaoCarrinho, { backgroundColor: "#c0392b" }]}
+          style={[styles.botaoCarrinho, styles.botaoRemover]}
           onPress={() => removerDoCarrinho(item.id)}
+          activeOpacity={0.8}
         >
           <Text style={styles.botaoCarrinhoTexto}>Remover</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          style={styles.botaoCarrinho}
+          style={[styles.botaoCarrinho, styles.botaoAdicionar]}
           onPress={() => addAoCarrinho(item)}
+          activeOpacity={0.8}
         >
           <Text style={styles.botaoCarrinhoTexto}>Adicionar</Text>
         </TouchableOpacity>
@@ -133,95 +143,329 @@ export default function Home() {
     </View>
   );
 
+  // Lógica de filtro e busca corrigida
+  useEffect(() => {
+    let data = categorias;
+
+    if (filtroAtivo) {
+      data = categorias.filter((cat) => cat.nome === filtroAtivo);
+    }
+
+    if (searchText.trim() !== "") {
+      const termo = searchText.toLowerCase();
+
+      data = data
+        .map((cat) => ({
+          ...cat,
+          produtos: cat.produtos.filter((produto) =>
+            produto.nome.toLowerCase().includes(termo)
+          ),
+        }))
+        .filter((cat) => cat.produtos.length > 0);
+    }
+
+    setFilteredCategorias(data);
+  }, [searchText, filtroAtivo]);
+
   return (
-    <ImageBackground
-      source={imagens.background}
-      style={styles.background}
-      resizeMode="cover"
-      blurRadius={3}
-    >
-      <Menu />
+    <>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <SafeAreaView style={styles.safeArea}>
+        <ImageBackground
+          source={imagens.background}
+          style={styles.background}
+          resizeMode="cover"
+          blurRadius={2}
+        >
+          <Menu />
 
-      <View style={styles.containerProdutos}>
-        {categorias.map((categoria, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => openMenu(categoria.nome)}
-            activeOpacity={0.8}
-          >
-            <ProdutoCard
-              nome={categoria.nome}
-              imagem={categoria.produtos[0].imagem}
-              tamanho="grande"
-              preco={""}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {menuVisible && categoriaSelecionada && (
-        <TouchableWithoutFeedback onPress={closeMenu}>
-          <View style={styles.overlay}>
-            {/* evitar fechar ao clicar dentro do modal */}
-            <TouchableWithoutFeedback>
-              <Animated.View style={[styles.sideMenu, { left: slideAnim }]}>
-                <View style={styles.headerMenu}>
-                  <Text style={styles.menuTitle}>Categoria: {categoriaSelecionada.nome}</Text>
-                  <TouchableOpacity onPress={closeMenu} style={styles.closeIcon}>
-                    <MaterialIcons name="close" size={24} color="#aaa" />
-                  </TouchableOpacity>
+          <View style={styles.header}>
+            <Text style={styles.titulo}>LuthStore 🎸</Text>
+            <TouchableOpacity
+              style={styles.carrinhoIcon}
+              onPress={() =>
+                openMenu(
+                  categoriaSelecionada?.nome ||
+                    (filteredCategorias[0] && filteredCategorias[0].nome) ||
+                    categorias[0].nome
+                )
+              }
+            >
+              <Ionicons name="cart" size={28} color="#fff" />
+              {carrinho.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{carrinho.length}</Text>
                 </View>
-
-                <FlatList
-                  data={categoriaSelecionada.produtos}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderProdutoCard}
-                  horizontal={false}
-                  numColumns={2}
-                  contentContainerStyle={{ paddingBottom: 20 }}
-                />
-
-                <View style={styles.carrinhoContainer}>
-                  <Text style={styles.carrinhoTitulo}>
-                    Carrinho: {carrinho.length} item(s)
-                  </Text>
-                  {carrinho.map((item) => (
-                    <Text key={item.id} style={styles.carrinhoItem}>
-                      • {item.nome}
-                    </Text>
-                  ))}
-                </View>
-
-                <View style={styles.botoesFooter}>
-                  <TouchableOpacity style={styles.botaoFooter} onPress={detalhes}>
-                    <Text style={styles.botaoFooterTexto}>Detalhes</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.botaoFooter} onPress={comprar}>
-                    <Text style={styles.botaoFooterTexto}>Comprar</Text>
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
-            </TouchableWithoutFeedback>
+              )}
+            </TouchableOpacity>
           </View>
-        </TouchableWithoutFeedback>
-      )}
-    </ImageBackground>
+
+          <View style={styles.searchContainer}>
+            <MaterialIcons name="search" size={22} color="#666" />
+            <TextInput
+              placeholder="Buscar produtos..."
+              placeholderTextColor="#666"
+              style={styles.searchInput}
+              value={searchText}
+              onChangeText={setSearchText}
+              clearButtonMode="while-editing"
+            />
+            {searchText !== "" && (
+              <TouchableOpacity onPress={() => setSearchText("")}>
+                <MaterialIcons name="close" size={22} color="#666" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroCategorias}>
+            <TouchableOpacity
+              onPress={() => setFiltroAtivo(null)}
+              style={[styles.filtroBotao, filtroAtivo === null && styles.filtroBotaoAtivo]}
+            >
+              <Text style={[styles.filtroTexto, filtroAtivo === null && styles.filtroTextoAtivo]}>
+                Todas
+              </Text>
+            </TouchableOpacity>
+
+            {categorias.map((cat) => (
+              <TouchableOpacity
+                key={cat.nome}
+                onPress={() => setFiltroAtivo(cat.nome)}
+                style={[styles.filtroBotao, filtroAtivo === cat.nome && styles.filtroBotaoAtivo]}
+              >
+                <Text style={[styles.filtroTexto, filtroAtivo === cat.nome && styles.filtroTextoAtivo]}>
+                  {cat.nome}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {filteredCategorias.length === 0 ? (
+              <Text style={styles.semProdutosTexto}>Nenhum produto encontrado.</Text>
+            ) : (
+              filteredCategorias.map((categoria, index) => (
+                <View key={index} style={styles.categoriaContainer}>
+                  <Text style={styles.categoriaTitulo}>{categoria.nome}</Text>
+                  <View style={styles.containerProdutos}>
+                    {categoria.produtos.map((produto) => (
+                      <TouchableOpacity
+                        key={produto.id}
+                        onPress={() => openMenu(categoria.nome)}
+                        activeOpacity={0.85}
+                        style={styles.touchCategoria}
+                      >
+                        <ProdutoCard
+                          nome={produto.nome}
+                          imagem={produto.imagem}
+                          tamanho="medio"
+                          preco={""}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))
+            )}
+          </ScrollView>
+
+          <View style={styles.rodape}>
+            <Text style={styles.rodapeTexto}>🎵 Entrega para todo o Brasil</Text>
+            <Text style={styles.rodapeTexto}>📞 Suporte: (51) 99999-9999</Text>
+            <Text style={styles.rodapeTexto}>© 2025 LuthStore. Todos os direitos reservados.</Text>
+          </View>
+
+          {menuVisible && categoriaSelecionada && (
+            <TouchableWithoutFeedback onPress={closeMenu}>
+              <View style={styles.overlay}>
+                <TouchableWithoutFeedback>
+                  <Animated.View style={[styles.sideMenu, { left: slideAnim }]}>
+                    <View style={styles.headerMenu}>
+                      <Text style={styles.menuTitle}>Categoria: {categoriaSelecionada.nome}</Text>
+                      <TouchableOpacity onPress={closeMenu} style={styles.closeIcon} activeOpacity={0.7}>
+                        <MaterialIcons name="close" size={28} color="#bbb" />
+                      </TouchableOpacity>
+                    </View>
+
+                    <FlatList
+                      data={categoriaSelecionada.produtos}
+                      keyExtractor={(item) => item.id}
+                      renderItem={renderProdutoCard}
+                      horizontal={false}
+                      numColumns={2}
+                      contentContainerStyle={{ paddingBottom: 24 }}
+                      showsVerticalScrollIndicator={false}
+                    />
+
+                    <View style={styles.carrinhoContainer}>
+                      <Text style={styles.carrinhoTitulo}>Carrinho: {carrinho.length} item(s)</Text>
+                      {carrinho.map((item) => (
+                        <Text key={item.id} style={styles.carrinhoItem}>
+                          • {item.nome}
+                        </Text>
+                      ))}
+                      {carrinho.length > 0 && (
+                        <TouchableOpacity
+                          style={[styles.botaoCarrinho, styles.botaoRemover, { marginTop: 12 }]}
+                          onPress={limparCarrinho}
+                        >
+                          <Text style={styles.botaoCarrinhoTexto}>Limpar Carrinho</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    <View style={styles.botoesFooter}>
+                      <TouchableOpacity
+                        style={[styles.botaoFooter, styles.botaoDetalhes]}
+                        onPress={() => Alert.alert("Detalhes", "Ver detalhes do produto.")}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.botaoFooterTexto}>Detalhes</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.botaoFooter, styles.botaoComprar]}
+                        onPress={comprar}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.botaoFooterTexto}>Comprar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </Animated.View>
+                </TouchableWithoutFeedback>
+              </View>
+            </TouchableWithoutFeedback>
+          )}
+        </ImageBackground>
+      </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
   background: {
     flex: 1,
     width: "100%",
     height: "100%",
+    paddingHorizontal: 12,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 8,
+  },
+  titulo: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "700",
+  },
+  carrinhoIcon: {
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: -6,
+    right: -10,
+    backgroundColor: "#e74c3c",
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    minWidth: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#222",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginHorizontal: 8,
+    marginBottom: 10,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 6,
+    color: "#fff",
+    fontSize: 16,
+    paddingVertical: 4,
+  },
+  filtroCategorias: {
+    paddingHorizontal: 8,
+    marginBottom: 8,
+  },
+  filtroBotao: {
+    backgroundColor: "#444",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  filtroBotaoAtivo: {
+    backgroundColor: "#1abc9c",
+  },
+  filtroTexto: {
+    color: "#ccc",
+    fontWeight: "600",
+  },
+  filtroTextoAtivo: {
+    color: "#111",
+  },
+  scrollContent: {
+    paddingBottom: 120, // Espaço para o rodapé fixo
+  },
+  categoriaContainer: {
+    marginBottom: 18,
+  },
+  categoriaTitulo: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 10,
+    paddingLeft: 8,
   },
   containerProdutos: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 15,
-    paddingTop: 20,
+    gap: 12,
+  },
+  touchCategoria: {
+    margin: 6,
+  },
+  semProdutosTexto: {
+    color: "#bbb",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 20,
+  },
+  rodape: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#111",
+    paddingVertical: 16,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#333",
+  },
+  rodapeTexto: {
+    color: "#bbb",
+    fontSize: 14,
+    marginBottom: 4,
   },
   overlay: {
     position: "absolute",
@@ -229,108 +473,110 @@ const styles = StyleSheet.create({
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.35)",
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   sideMenu: {
     position: "absolute",
     top: 0,
     bottom: 0,
-    width: "60%",
-    backgroundColor: "#121212",
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    width: "62%",
+    backgroundColor: "#181818",
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    borderTopRightRadius: 14,
+    borderBottomRightRadius: 14,
     shadowColor: "#000",
-    shadowOffset: { width: 3, height: 0 },
-    shadowOpacity: 0.7,
-    shadowRadius: 8,
-    elevation: 12,
+    shadowOffset: { width: 4, height: 0 },
+    shadowOpacity: 0.85,
+    shadowRadius: 12,
+    elevation: 14,
   },
   headerMenu: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 24,
   },
   menuTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: "700",
+    color: "#ddd",
   },
   closeIcon: {
-    padding: 5,
+    padding: 4,
   },
-
   cardModal: {
-    backgroundColor: "#1f1f1f",
-    borderRadius: 8,
-    margin: 8,
+    flex: 1,
+    margin: 6,
+    backgroundColor: "#222",
+    borderRadius: 12,
     padding: 12,
     alignItems: "center",
-    width: "45%", // dois cards por linha
-    shadowColor: "#000",
-    shadowOffset: { width: 1, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
   },
   cardModalImage: {
-    width: 100,
-    height: 70,
-    marginBottom: 8,
+    width: 120,
+    height: 100,
+    marginBottom: 12,
   },
   cardModalText: {
-    fontSize: 14,
+    color: "#eee",
+    fontSize: 16,
     fontWeight: "600",
-    color: "#fff",
+    marginBottom: 12,
     textAlign: "center",
-    marginBottom: 10,
   },
-
   botaoCarrinho: {
-    backgroundColor: "#2980b9",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+  },
+  botaoAdicionar: {
+    backgroundColor: "#1abc9c",
+  },
+  botaoRemover: {
+    backgroundColor: "#e74c3c",
   },
   botaoCarrinhoTexto: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "700",
   },
-
   carrinhoContainer: {
-    marginTop: 20,
+    marginTop: 24,
     borderTopWidth: 1,
     borderTopColor: "#444",
-    paddingTop: 10,
+    paddingTop: 12,
   },
   carrinhoTitulo: {
-    color: "#fff",
     fontWeight: "700",
-    marginBottom: 6,
+    fontSize: 16,
+    color: "#ccc",
+    marginBottom: 8,
   },
   carrinhoItem: {
     color: "#ddd",
     fontSize: 14,
-    marginBottom: 2,
+    marginVertical: 2,
   },
-
   botoesFooter: {
+    marginTop: 20,
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 15,
+    justifyContent: "space-between",
   },
-
   botaoFooter: {
-    backgroundColor: "#27ae60",
+    flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 30,
     borderRadius: 8,
-    minWidth: 120,
+    marginHorizontal: 6,
+    alignItems: "center",
+  },
+  botaoDetalhes: {
+    backgroundColor: "#555",
+  },
+  botaoComprar: {
+    backgroundColor: "#1abc9c",
   },
   botaoFooterTexto: {
     color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "center",
+    fontWeight: "700",
   },
 });

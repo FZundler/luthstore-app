@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ImageBackground,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,7 +30,6 @@ export default function Login() {
 
     setLoading(true);
 
-    // Simulação de autenticação — substitua pela sua lógica real
     if (email.toLowerCase() === "admin@email.com" && senha === "123456") {
       try {
         await AsyncStorage.setItem("userName", email);
@@ -53,7 +53,7 @@ export default function Login() {
       source={imagens.background}
       style={styles.background}
       resizeMode="cover"
-      blurRadius={5}
+      blurRadius={6}
     >
       <KeyboardAvoidingView
         style={styles.container}
@@ -65,7 +65,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#999"
+            placeholderTextColor="#bbb"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -78,7 +78,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="Senha"
-            placeholderTextColor="#999"
+            placeholderTextColor="#bbb"
             secureTextEntry
             value={senha}
             onChangeText={setSenha}
@@ -92,7 +92,11 @@ export default function Login() {
             activeOpacity={0.8}
             disabled={loading}
           >
-            <Text style={styles.botaoTexto}>{loading ? "Entrando..." : "Entrar"}</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.botaoTexto}>Entrar</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -114,58 +118,70 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 25,
   },
   formWrapper: {
     width: "100%",
     maxWidth: 400,
-    backgroundColor: "#121212",
-    padding: 28,
-    borderRadius: 14,
+    backgroundColor: "rgba(18, 18, 18, 0.9)",
+    paddingVertical: 32,
+    paddingHorizontal: 28,
+    borderRadius: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 12,
   },
   titulo: {
-    fontSize: 28,
-    color: "#fff",
-    marginBottom: 28,
+    fontSize: 30,
+    color: "#f7f7f7",
+    marginBottom: 32,
     textAlign: "center",
-    fontWeight: "700",
-    letterSpacing: 1,
+    fontWeight: "800",
+    letterSpacing: 1.2,
   },
   input: {
-    height: 50,
-    backgroundColor: "#222",
+    height: 54,
+    backgroundColor: "#2a2a2a",
     color: "#eee",
-    borderRadius: 10,
-    paddingHorizontal: 18,
-    marginBottom: 18,
-    fontSize: 17,
-    fontWeight: "500",
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    marginBottom: 22,
+    fontSize: 18,
+    fontWeight: "600",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
   botao: {
-    backgroundColor: "#4a90e2",
-    paddingVertical: 16,
-    borderRadius: 10,
+    backgroundColor: "#3467eb",
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#2f52e0",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 10,
   },
   botaoDisabled: {
-    backgroundColor: "#6c8ecf",
+    backgroundColor: "#6b85d6",
   },
   botaoTexto: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
   },
   paginaInicial: {
-    color: "#bbb",
-    fontSize: 17,
+    color: "#ccc",
+    fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
-    marginTop: 26,
+    marginTop: 32,
     textDecorationLine: "underline",
   },
 });
