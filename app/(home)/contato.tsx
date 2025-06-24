@@ -1,4 +1,3 @@
-// pages/contato.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -13,7 +12,8 @@ import {
   Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { imagens } from "@/assets/images/images"; // Pega a imagem correta do arquivo
+
+const backgroundImage = require("../../assets/images/whats.png");
 
 export default function Contato() {
   const router = useRouter();
@@ -45,16 +45,16 @@ export default function Contato() {
   };
 
   const handleGoHome = () => {
-    router.replace("/"); // Voltar para a Home
+    router.replace("/");
   };
 
   return (
     <ImageBackground
-      source={imagens.background} // ✅ Aqui ele usa o whats.jpg
+      source={backgroundImage}
       style={styles.background}
       resizeMode="cover"
       blurRadius={2}
-    >git
+    >
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
