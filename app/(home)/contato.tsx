@@ -9,8 +9,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ImageBackground,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { imagens } from "@/assets/images/images"; // Pega a imagem correta do arquivo
 
 export default function Contato() {
   const router = useRouter();
@@ -18,71 +21,95 @@ export default function Contato() {
   const [email, setEmail] = useState("");
   const [mensagem, setMensagem] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (nome && email && mensagem) {
-      Alert.alert("Sucesso", "Sua mensagem foi enviada com sucesso!");
-      router.replace(`https://wa.me/5553981568093?text=Nome: ${nome}, Email: ${email}, Mensagem: ${mensagem}`); // Exemplo de redirecionamento para a home
+      const mensagemFormatada = `Nome: ${nome}, Email: ${email}, Mensagem: ${mensagem}`;
+      const url = `https://wa.me/5553981568093?text=${encodeURIComponent(
+        mensagemFormatada
+      )}`;
+
+      try {
+        const podeAbrir = await Linking.canOpenURL(url);
+        if (podeAbrir) {
+          await Linking.openURL(url);
+        } else {
+          Alert.alert("Erro", "Não foi possível abrir o WhatsApp.");
+        }
+      } catch (error) {
+        Alert.alert("Erro", "Algo deu errado ao tentar abrir o WhatsApp.");
+        console.error(error);
+      }
     } else {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
     }
   };
 
   const handleGoHome = () => {
-    router.replace("/"); // Redireciona para a página inicial
+    router.replace("/"); // Voltar para a Home
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.formWrapper}>
-        <Text style={styles.titulo}>LuthStore - Contato 🎸</Text>
+    <ImageBackground
+      source={imagens.background} // ✅ Aqui ele usa o whats.jpg
+      style={styles.background}
+      resizeMode="cover"
+      blurRadius={2}
+    >git
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <View style={styles.formWrapper}>
+          <Text style={styles.titulo}>LuthStore - Contato 🎸</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nome"
-          placeholderTextColor="#999"
-          value={nome}
-          onChangeText={setNome}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Nome"
+            placeholderTextColor="#999"
+            value={nome}
+            onChangeText={setNome}
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-        <TextInput
-          style={[styles.input, { height: 100 }]} // Aumentando a altura para a mensagem
-          placeholder="Mensagem"
-          placeholderTextColor="#999"
-          value={mensagem}
-          onChangeText={setMensagem}
-          multiline
-        />
+          <TextInput
+            style={[styles.input, { height: 100 }]}
+            placeholder="Mensagem"
+            placeholderTextColor="#999"
+            value={mensagem}
+            onChangeText={setMensagem}
+            multiline
+          />
 
-        <TouchableOpacity style={styles.botao} onPress={handleSubmit}>
-          <Text style={styles.botaoTexto}>Enviar Mensagem</Text>
+          <TouchableOpacity style={styles.botao} onPress={handleSubmit}>
+            <Text style={styles.botaoTexto}>Enviar via WhatsApp</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={handleGoHome}>
+          <Text style={styles.paginaInicial}>Página Inicial</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Apenas a palavra "Página Inicial" que redireciona */}
-      <TouchableOpacity onPress={handleGoHome}>
-        <Text style={styles.paginaInicial}>Página Inicial</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
   container: {
     flex: 1,
-    backgroundColor: "#111",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -90,7 +117,7 @@ const styles = StyleSheet.create({
   formWrapper: {
     width: "100%",
     maxWidth: 400,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "rgba(26, 26, 26, 0.85)",
     padding: 24,
     borderRadius: 12,
     shadowColor: "#000",
@@ -116,21 +143,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   botao: {
-    backgroundColor: "#6200ee",
+    backgroundColor: "#25D366",
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
+    marginTop: 10,
   },
   botaoTexto: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "bold",
   },
   paginaInicial: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "500",
     textAlign: "center",
-    marginTop: 40,
+    marginTop: 30,
   },
 });

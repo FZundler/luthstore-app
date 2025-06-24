@@ -12,32 +12,48 @@ import {
   ImageBackground,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { imagens } from "@/assets/images/images"; // Importe suas imagens aquii
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { imagens } from "@/assets/images/images";
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email === "admin@email.com" && senha === "123456") {
-      localStorage.setItem("userName", email); // Armazenando o nome do usuário no localStorage
-      router.replace("/home"); // Redireciona para a home
+  const handleLogin = async () => {
+    if (!email.trim() || !senha.trim()) {
+      Alert.alert("Atenção", "Por favor, preencha todos os campos.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Simulação de autenticação — substitua pela sua lógica real
+    if (email.toLowerCase() === "admin@email.com" && senha === "123456") {
+      try {
+        await AsyncStorage.setItem("userName", email);
+        router.replace("/home");
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível salvar o login.");
+      }
     } else {
       Alert.alert("Erro", "Email ou senha inválidos.");
     }
+
+    setLoading(false);
   };
 
   const handleGoHome = () => {
-    router.replace("/home"); // Redireciona para a página inicial
+    router.replace("/home");
   };
 
   return (
     <ImageBackground
-      source={imagens.background} // Substitua com o caminho da sua imagem de fundo
+      source={imagens.background}
       style={styles.background}
       resizeMode="cover"
-      blurRadius={5} // Defina o valor para o nível de desfoque
+      blurRadius={5}
     >
       <KeyboardAvoidingView
         style={styles.container}
@@ -54,6 +70,9 @@ export default function Login() {
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+            textContentType="emailAddress"
           />
 
           <TextInput
@@ -63,15 +82,21 @@ export default function Login() {
             secureTextEntry
             value={senha}
             onChangeText={setSenha}
+            editable={!loading}
+            textContentType="password"
           />
 
-          <TouchableOpacity style={styles.botao} onPress={handleLogin}>
-            <Text style={styles.botaoTexto}>Entrar</Text>
+          <TouchableOpacity
+            style={[styles.botao, loading && styles.botaoDisabled]}
+            onPress={handleLogin}
+            activeOpacity={0.8}
+            disabled={loading}
+          >
+            <Text style={styles.botaoTexto}>{loading ? "Entrando..." : "Entrar"}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Palavra "Página Inicial" fora do card */}
-        <TouchableOpacity onPress={handleGoHome}>
+        <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Text style={styles.paginaInicial}>Página Inicial</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
@@ -94,47 +119,53 @@ const styles = StyleSheet.create({
   formWrapper: {
     width: "100%",
     maxWidth: 400,
-    backgroundColor: "#1a1a1a",
-    padding: 24,
-    borderRadius: 12,
+    backgroundColor: "#121212",
+    padding: 28,
+    borderRadius: 14,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   titulo: {
-    fontSize: 26,
+    fontSize: 28,
     color: "#fff",
-    marginBottom: 24,
+    marginBottom: 28,
     textAlign: "center",
-    fontWeight: "600",
+    fontWeight: "700",
+    letterSpacing: 1,
   },
   input: {
-    height: 48,
+    height: 50,
     backgroundColor: "#222",
-    color: "#fff",
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 16,
-    fontSize: 16,
+    color: "#eee",
+    borderRadius: 10,
+    paddingHorizontal: 18,
+    marginBottom: 18,
+    fontSize: 17,
+    fontWeight: "500",
   },
   botao: {
-    backgroundColor: "#6200ee",
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: "#4a90e2",
+    paddingVertical: 16,
+    borderRadius: 10,
     alignItems: "center",
+  },
+  botaoDisabled: {
+    backgroundColor: "#6c8ecf",
   },
   botaoTexto: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 18,
+    fontWeight: "700",
   },
   paginaInicial: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "500",
+    color: "#bbb",
+    fontSize: 17,
+    fontWeight: "600",
     textAlign: "center",
-    marginTop: 20,
+    marginTop: 26,
+    textDecorationLine: "underline",
   },
 });
